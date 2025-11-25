@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+import urllib.parse
 
 app = FastAPI()
 
@@ -17,7 +18,7 @@ def login_page(request: Request):
 
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # simple login – you can change this later
+    # Default login
     if username == "admin" and password == "password123":
         response = RedirectResponse("/name-input", status_code=302)
         response.set_cookie("user", username)
@@ -30,10 +31,13 @@ def name_input(request: Request):
 
 @app.post("/set-name")
 def set_name(request: Request, display_name: str = Form(...)):
-    response = RedirectResponse("/dashboard", status_code=302)
-    response.set_cookie("display_name", display_name)
+    # Encode the name for cookie (fixes Unicode crash on Render)
+    safe_name = urllib.parse.quote(display_name)
 
-    # Add name to access log
+    response = RedirectResponse("/dashboard", status_code=302)
+    response.set_cookie("display_name", safe_name)
+
+    # Add the REAL name to access logs
     access_logs.append(display_name)
 
     return response
@@ -41,7 +45,11 @@ def set_name(request: Request, display_name: str = Form(...)):
 @app.get("/dashboard")
 def dashboard(request: Request):
     user = request.cookies.get("user")
-    display_name = request.cookies.get("display_name")
+
+    # Decode the encoded cookie name
+    raw_name = request.cookies.get("display_name", "")
+    display_name = urllib.parse.unquote(raw_name)
+
     if not user:
         return RedirectResponse("/")
 
