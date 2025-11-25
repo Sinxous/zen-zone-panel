@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <title>Zen-Zone Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Load theme from localStorage
+    if (localStorage.getItem("theme") === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.classList.toggle("dark");
+
+      if (html.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+      } else {
+        localStorage.setItem("theme", "light");
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-100 dark:bg-[#0e0e0e] text-black dark:text-white transition">
+
+  <div class="p-4 flex justify-end">
+    <button onclick="toggleTheme()" class="px-4 py-2 bg-yellow-500 rounded">Toggle Theme</button>
+  </div>
+
+  {% block content %}{% endblock %}
+</body>
+</html>
